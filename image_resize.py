@@ -6,33 +6,25 @@ from PIL import Image
 def scale(image, **kwargs):
     width, height = image.size
     scale = kwargs.get('scale')
-    new_size = int(width * scale), int(height * scale)
-    image = image.resize(new_size, resample=Image.LANCZOS)
-    return image
+    return int(width * scale), int(height * scale)
 
 
 def linear(image, **kwargs):
-    new_size = kwargs.get('width'), kwargs.get('height')
-    image = image.resize(new_size, resample=Image.LANCZOS)
-    return image
+    return kwargs.get('width'), kwargs.get('height')
 
 
 def adjusted_height(image, **kwargs):
     aspect_ratio = get_aspect_ratio(image.size)
     width = kwargs.get('width')
     height = int(width / aspect_ratio)
-    new_size = width, height
-    image = image.resize(new_size, resample=Image.LANCZOS)
-    return image
+    return width, height
 
 
 def adjusted_width(image, **kwargs):
     aspect_ratio = get_aspect_ratio(image.size)
     height = kwargs.get('height')
     width = int(height / aspect_ratio)
-    new_size = width, height
-    image = image.resize(new_size, resample=Image.LANCZOS)
-    return image
+    return width, height
 
 
 def manage_resize_method(options):
@@ -77,11 +69,11 @@ def resize_image(resize_method, options):
     path_to_original = options.input_file
     path_to_result = options.output_file
     original = Image.open(path_to_original)
-    transformed = original.copy()
-    transformed = resize_method(transformed, **vars(options))
+    new_size = resize_method(original, **vars(options))
+    transformed = original.resize(new_size, resample=Image.LANCZOS)
 
     if not is_aspect_ratio_saved(original.size, transformed.size):
-        print('\nWarning! Current transformation will not preserve original aspect ratio!\n')
+        print('\nWARNING! Current transformation will not preserve original aspect ratio!\n')
 
     if not path_to_result:
         path_to_result = create_filename(path_to_original, transformed.size)
