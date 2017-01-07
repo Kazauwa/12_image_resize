@@ -9,18 +9,18 @@ def scale(image, **kwargs):
     return int(width * scale), int(height * scale)
 
 
-def linear(image, **kwargs):
+def linear_resize(image, **kwargs):
     return kwargs.get('width'), kwargs.get('height')
 
 
-def adjusted_height(image, **kwargs):
+def adjust_height_by_width(image, **kwargs):
     aspect_ratio = get_aspect_ratio(image.size)
     width = kwargs.get('width')
     height = int(width / aspect_ratio)
     return width, height
 
 
-def adjusted_width(image, **kwargs):
+def adjust_width_by_height(image, **kwargs):
     aspect_ratio = get_aspect_ratio(image.size)
     height = kwargs.get('height')
     width = int(height / aspect_ratio)
@@ -33,11 +33,11 @@ def get_resize_method(options):
     elif options.scale:
         return scale
     elif options.width and options.height:
-        return linear
+        return linear_resize
     elif options.width and not options.height:
-        return adjusted_height
+        return adjust_height_by_width
     elif options.height and not options.width:
-        return adjusted_width
+        return adjust_width_by_height
     else:
         raise ValueError('Scale or width/height must be specified')
 
