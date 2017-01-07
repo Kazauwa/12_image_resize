@@ -27,31 +27,23 @@ def adjusted_width(image, **kwargs):
     return width, height
 
 
-def manage_resize_method(options):
+def get_resize_method(options):
     if options.scale and (options.width or options.height):
         raise ValueError('Either scale or width/height must be specified!')
     elif options.scale:
-        return 'SCALE'
+        return scale
     elif options.width and options.height:
-        return 'LINEAR'
+        return linear
     elif options.width and not options.height:
-        return 'ADJUSTED_HEIGHT'
+        return adjusted_height
     elif options.height and not options.width:
-        return 'ADJUSTED_WIDTH'
+        return adjusted_width
     else:
         raise ValueError('Scale or width/height must be specified')
 
 
-RESIZE_METHODS = {
-    'SCALE': scale,
-    'LINEAR': linear,
-    'ADJUSTED_HEIGHT': adjusted_height,
-    'ADJUSTED_WIDTH': adjusted_width
-}
-
-
-def get_aspect_ratio(size):
-    width, height = size
+def get_aspect_ratio(image_size):
+    width, height = image_size
     return round(width / height, 2)
 
 
@@ -59,25 +51,25 @@ def is_aspect_ratio_saved(original_size, new_size):
     return get_aspect_ratio(original_size) == get_aspect_ratio(new_size)
 
 
-def create_filename(path_to_original, size):
+def create_filename(path_to_original, image_size):
     path, filename = os.path.split(path_to_original)
-    filename = '{0}x{1}__{2}'.format(*size, filename)
+    filename = '{0}x{1}__{2}'.format(*image_size, filename)
     return os.path.join(path, filename)
 
 
 def resize_image(resize_method, options):
     path_to_original = options.input_file
     path_to_result = options.output_file
-    original = Image.open(path_to_original)
-    new_size = resize_method(original, **vars(options))
-    transformed = original.resize(new_size, resample=Image.LANCZOS)
+    original_image = Image.open(path_to_original)
+    new_size = resize_method(original_image, **vars(options))
+    transformed_image = original_image.resize(new_size, resample=Image.LANCZOS)
 
-    if not is_aspect_ratio_saved(original.size, transformed.size):
-        print('\nWARNING! Current transformation will not preserve original aspect ratio!\n')
+    if not is_aspect_ratio_saved(original_image.size, transformed_image.size):
+        print('\nWARNING! Current transformation will not preserve original_image aspect ratio!\n')
 
     if not path_to_result:
-        path_to_result = create_filename(path_to_original, transformed.size)
-    transformed.save(path_to_result)
+        path_to_result = create_filename(path_to_original, transformed_image.size)
+    transformed_image.save(path_to_result)
 
 
 if __name__ == '__main__':
@@ -95,5 +87,5 @@ if __name__ == '__main__':
 
     options = parser.parse_args()
 
-    resize_method = RESIZE_METHODS[manage_resize_method(options)]
+    resize_method = get_resize_method(options)
     resize_image(resize_method, options)
